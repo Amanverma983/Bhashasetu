@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BhāṣāSetu — Indian Language Translator</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;
+  --saffron:#f97316;
+  --gold:#f59e0b;
+  --gold2:#fcd34d;
+  --teal:#14b8a6;
+  --glass:rgba(255,255,255,0.04);
+  --glass2:rgba(255,255,255,0.07);
+  --border:rgba(255,184,48,0.12);
+  --border2:rgba(255,184,48,0.22);
+  --text:#f0e6d3;
+  --text2:#a89880;
+  --text3:#6b5a48;
+  --glow:rgba(249,115,22,0.35);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);min-height:100vh;color:var(--text);overflow-x:hidden}
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.4;pointer-events:none;z-index:1}
+.page{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column}
+
+/* HEADER */
+header{text-align:center;padding:56px 24px 36px;position:relative}
+.header-glow{position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:300px;background:radial-gradient(ellipse at top,rgba(249,115,22,0.18) 0%,transparent 70%);pointer-events:none}
+.logo{font-family:'Cinzel Decorative',cursive;font-size:clamp(2rem,6vw,3.8rem);font-weight:700;background:linear-gradient(135deg,#fcd34d 0%,#f97316 40%,#fb923c 70%,#fcd34d 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 4s linear infinite,fadeSlideDown 0.9s ease both;letter-spacing:0.04em;filter:drop-shadow(0 0 30px rgba(249,115,22,0.4))}
+@keyframes shimmer{to{background-position:200% center}}
+.logo-deva{font-family:'Crimson Pro',serif;font-size:1.1rem;font-weight:300;color:var(--text2);letter-spacing:0.25em;margin-top:8px;animation:fadeSlideDown 1s ease 0.1s both}
+.tagline{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:12px;animation:fadeSlideDown 1s ease 0.2s both}
+.tagline-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);opacity:0.6}
+.tagline span{font-size:0.78rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);font-weight:500}
+.header-line{width:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:22px auto 0;animation:expandLine 1.2s ease 0.4s both}
+@keyframes expandLine{to{width:200px}}
+@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+
+/* MAIN */
+main{flex:1;padding:0 20px 60px;max-width:1020px;margin:0 auto;width:100%}
+
+/* PILLS */
+.pill-section{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:28px;animation:fadeUp 0.8s ease 0.3s both}
+.pill{font-family:'Outfit',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:7px 16px;border-radius:100px;border:1px solid var(--border2);background:var(--glass);color:var(--text2);cursor:pointer;transition:all 0.25s;backdrop-filter:blur(10px)}
+.pill:hover,.pill.active{background:linear-gradient(135deg,var(--saffron),var(--gold));border-color:transparent;color:#fff;box-shadow:0 4px 20px rgba(249,115,22,0.4);transform:translateY(-2px)}
+
+/* CARD */
+.card{background:var(--glass);border:1px solid var(--border);border-radius:28px;backdrop-filter:blur(24px);box-shadow:0 0 0 1px rgba(255,255,255,0.03) inset,0 32px 80px rgba(0,0,0,0.5);overflow:hidden;animation:fadeUp 0.8s ease 0.4s both}
+
+/* LANG BAR */
+.lang-bar{display:grid;grid-template-columns:1fr 64px 1fr;align-items:end;padding:28px 32px 22px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(249,115,22,0.05) 0%,transparent 100%)}
+.lang-group{display:flex;flex-direction:column;gap:7px}
+.lang-label{font-size:0.68rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--saffron)}
+.lang-select{font-family:'Outfit',sans-serif;font-size:0.98rem;font-weight:500;color:var(--text);background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:14px;padding:12px 40px 12px 16px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%23f97316' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;transition:border-color 0.2s,box-shadow 0.2s,background 0.2s}
+.lang-select:focus{border-color:var(--saffron);box-shadow:0 0 0 3px rgba(249,115,22,0.15);background:rgba(249,115,22,0.08)}
+.lang-select option{background:#1a1a2e;color:#f0e6d3}
+.swap-wrap{display:flex;justify-content:center;padding-bottom:2px}
+.swap-btn{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,rgba(249,115,22,0.2),rgba(245,158,11,0.2));border:1px solid var(--border2);cursor:pointer;color:var(--gold);display:flex;align-items:center;justify-content:center;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);backdrop-filter:blur(10px)}
+.swap-btn:hover{background:linear-gradient(135deg,var(--saffron),var(--gold));border-color:transparent;color:#fff;box-shadow:0 6px 24px var(--glow);transform:rotate(180deg) scale(1.1)}
+
+/* PANELS */
+.panels{display:grid;grid-template-columns:1fr 1px 1fr;min-height:240px}
+.panel-divider{background:var(--border);margin:20px 0}
+.panel{padding:24px 28px;position:relative;display:flex;flex-direction:column}
+.panel-header{font-size:0.68rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.panel-header::after{content:'';flex:1;height:1px;background:var(--border)}
+textarea{flex:1;border:none;outline:none;resize:none;font-family:'Crimson Pro',serif;font-size:1.2rem;line-height:1.75;color:var(--text);background:transparent;min-height:160px}
+textarea::placeholder{color:var(--text3);font-style:italic}
+.output-area{flex:1;min-height:160px;font-family:'Crimson Pro',serif;font-size:1.2rem;line-height:1.8;color:var(--text)}
+.output-placeholder{color:var(--text3);font-style:italic;font-size:1rem}
+.transliteration{margin-top:12px;font-family:'Outfit',sans-serif;font-size:0.82rem;color:var(--teal);letter-spacing:0.04em;padding:6px 12px;background:rgba(20,184,166,0.08);border-radius:8px;border-left:2px solid var(--teal);display:none}
+
+/* BOTTOM BAR */
+.bottom-bar{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-top:1px solid var(--border);background:rgba(255,255,255,0.02);flex-wrap:wrap;gap:14px}
+.left-info{display:flex;align-items:center;gap:16px}
+.char-count{font-size:0.75rem;color:var(--text3);font-weight:500}
+.wave{display:none;align-items:center;gap:2.5px;height:18px}
+.wave.on{display:flex}
+.wb{width:2.5px;background:var(--saffron);border-radius:2px;animation:wv 1s ease-in-out infinite}
+.wb:nth-child(2){animation-delay:.12s;height:10px}
+.wb:nth-child(3){animation-delay:.24s;height:16px}
+.wb:nth-child(4){animation-delay:.36s;height:8px}
+.wb:nth-child(5){animation-delay:.48s;height:12px}
+@keyframes wv{0%,100%{transform:scaleY(0.3)}50%{transform:scaleY(1)}}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{font-family:'Outfit',sans-serif;font-size:0.82rem;font-weight:600;letter-spacing:0.04em;padding:11px 22px;border-radius:100px;border:none;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden}
+.btn::before{content:'';position:absolute;inset:0;background:rgba(255,255,255,0.1);transform:translateX(-100%);transition:transform 0.3s}
+.btn:hover::before{transform:translateX(0)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{border-color:var(--saffron);color:var(--saffron);transform:translateY(-2px)}
+.btn-teal{background:linear-gradient(135deg,rgba(20,184,166,0.2),rgba(20,184,166,0.1));color:var(--teal);border:1px solid rgba(20,184,166,0.25)}
+.btn-teal:hover{background:var(--teal);color:#fff;box-shadow:0 6px 20px rgba(20,184,166,0.35);transform:translateY(-2px)}
+.btn-primary{background:linear-gradient(135deg,var(--saffron),#ea580c);color:#fff;box-shadow:0 4px 20px rgba(249,115,22,0.35)}
+.btn-primary:hover{box-shadow:0 8px 28px rgba(249,115,22,0.5);transform:translateY(-3px)}
+.btn-primary:active{transform:translateY(0)}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none!important}
+.spin{width:15px;height:15px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* OUTPUT ICONS */
+.out-actions{position:absolute;bottom:14px;right:20px;display:none;gap:8px}
+.out-actions.show{display:flex}
+.icon-btn{width:34px;height:34px;border-radius:50%;background:var(--glass2);border:1px solid var(--border2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;backdrop-filter:blur(10px)}
+.icon-btn:hover{background:var(--saffron);border-color:transparent;color:#fff;transform:scale(1.15)}
+
+/* CULTURAL CARD */
+.cultural-card{margin:0 28px 28px;border-radius:18px;overflow:hidden;border:1px solid rgba(20,184,166,0.2);display:none;animation:fadeUp 0.5s ease both}
+.cultural-card.show{display:block}
+.cultural-top{background:linear-gradient(135deg,rgba(20,184,166,0.15),rgba(20,184,166,0.05));padding:14px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(20,184,166,0.15)}
+.cultural-top h3{font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal);font-weight:700}
+.cultural-body{padding:18px 20px;background:rgba(20,184,166,0.03)}
+.cultural-body p{font-family:'Crimson Pro',serif;font-size:1.05rem;line-height:1.8;color:var(--text2)}
+.tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.tag{font-size:0.72rem;font-weight:600;letter-spacing:0.06em;padding:4px 13px;border-radius:100px;background:rgba(249,115,22,0.12);color:var(--saffron);border:1px solid rgba(249,115,22,0.2)}
+
+/* HISTORY */
+.history-section{margin-top:28px;animation:fadeUp 0.8s ease 0.6s both}
+.history-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:0 4px}
+.history-title{font-size:0.72rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;gap:8px}
+.history-title::before{content:'';display:inline-block;width:3px;height:14px;background:linear-gradient(180deg,var(--saffron),var(--gold));border-radius:2px}
+.history-clear{font-family:'Outfit',sans-serif;font-size:0.72rem;font-weight:600;color:var(--text3);background:transparent;border:1px solid var(--border);border-radius:100px;padding:5px 14px;cursor:pointer;transition:all 0.2s;letter-spacing:0.04em}
+.history-clear:hover{color:#fb7185;border-color:#fb7185;background:rgba(251,113,133,0.08)}
+.history-empty{text-align:center;padding:32px;color:var(--text3);font-size:0.9rem;font-style:italic;font-family:'Crimson Pro',serif;border:1px dashed var(--border);border-radius:18px;background:var(--glass)}
+.history-list{display:flex;flex-direction:column;gap:10px}
+.history-item{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:16px 18px;cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden;backdrop-filter:blur(10px)}
+.history-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--saffron),var(--gold));opacity:0;transition:opacity 0.2s}
+.history-item:hover{border-color:var(--border2);background:var(--glass2);transform:translateX(4px)}
+.history-item:hover::before{opacity:1}
+.history-meta{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.history-langs{font-size:0.72rem;font-weight:600;color:var(--saffron);letter-spacing:0.06em}
+.history-time{font-size:0.68rem;color:var(--text3);margin-left:auto}
+.history-texts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.history-input-text{font-size:0.88rem;color:var(--text2);line-height:1.5;font-family:'Crimson Pro',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-output-text{font-size:0.88rem;color:var(--text);line-height:1.5;font-family:'Crimson Pro',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-del{position:absolute;top:10px;right:12px;width:26px;height:26px;border-radius:50%;background:transparent;border:none;cursor:pointer;color:var(--text3);display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.2s}
+.history-item:hover .history-del{opacity:1}
+.history-del:hover{background:rgba(251,113,133,0.15);color:#fb7185}
+@media(max-width:640px){.history-texts{grid-template-columns:1fr}.history-output-text{display:none}}
+
+/* TOAST */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(15,17,25,0.95);color:var(--text);padding:13px 28px;border-radius:100px;font-size:0.85rem;font-weight:500;border:1px solid var(--border2);box-shadow:0 16px 40px rgba(0,0,0,0.4),0 0 0 1px rgba(249,115,22,0.15);backdrop-filter:blur(20px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);z-index:100;white-space:nowrap;opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* FOOTER */
+footer{text-align:center;padding:24px;font-size:0.75rem;color:var(--text3);letter-spacing:0.08em;position:relative;z-index:2}
+footer b{color:var(--saffron);font-weight:600}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  .panels{grid-template-columns:1fr;grid-template-rows:auto 1px auto}
+  .panel-divider{height:1px;width:auto;margin:0 20px}
+  .lang-bar{grid-template-columns:1fr;gap:10px;padding:20px 18px}
+  .swap-wrap{justify-content:flex-start}
+  .bottom-bar{justify-content:center;padding:16px 18px}
+  .panel{padding:18px 20px}
+  header{padding:40px 16px 28px}
+  .cultural-card{margin:0 18px 20px}
+}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="page">
+  <header>
+    <div class="header-glow"></div>
+    <div class="logo">BhāṣāSetu</div>
+    <div class="logo-deva">भाषासेतु &nbsp;·&nbsp; Bridge of Voices</div>
+    <div class="tagline">
+      <div class="tagline-dot"></div>
+      <span>25+ Indian Languages</span>
+      <div class="tagline-dot"></div>
+      <span>Cultural Context</span>
+      <div class="tagline-dot"></div>
+      <span>Voice Output</span>
+      <div class="tagline-dot"></div>
+    </div>
+    <div class="header-line"></div>
+  </header>
+
+  <main>
+    <div class="pill-section">
+      <span class="pill" onclick="quickLang('Hindi',event)">Hindi</span>
+      <span class="pill" onclick="quickLang('Bengali',event)">Bengali</span>
+      <span class="pill" onclick="quickLang('Tamil',event)">Tamil</span>
+      <span class="pill" onclick="quickLang('Telugu',event)">Telugu</span>
+      <span class="pill" onclick="quickLang('Marathi',event)">Marathi</span>
+      <span class="pill" onclick="quickLang('Gujarati',event)">Gujarati</span>
+      <span class="pill" onclick="quickLang('Kannada',event)">Kannada</span>
+      <span class="pill" onclick="quickLang('Malayalam',event)">Malayalam</span>
+      <span class="pill" onclick="quickLang('Punjabi',event)">Punjabi</span>
+      <span class="pill" onclick="quickLang('Urdu',event)">Urdu</span>
+      <span class="pill" onclick="quickLang('Sanskrit',event)">Sanskrit</span>
+      <span class="pill" onclick="quickLang('Bhojpuri',event)">Bhojpuri</span>
+    </div>
+
+    <div class="card">
+      <div class="lang-bar">
+        <div class="lang-group">
+          <span class="lang-label">Translate From</span>
+          <select class="lang-select" id="fromLang">
+            <option value="English">English</option>
+            <option value="Hindi">Hindi</option>
+            <option value="Bengali">Bengali</option>
+            <option value="Tamil">Tamil</option>
+            <option value="Telugu">Telugu</option>
+            <option value="Marathi">Marathi</option>
+            <option value="Gujarati">Gujarati</option>
+            <option value="Kannada">Kannada</option>
+            <option value="Malayalam">Malayalam</option>
+            <option value="Punjabi">Punjabi</option>
+            <option value="Urdu">Urdu</option>
+            <option value="Odia">Odia</option>
+            <option value="Assamese">Assamese</option>
+            <option value="Maithili">Maithili</option>
+            <option value="Sanskrit">Sanskrit</option>
+            <option value="Bhojpuri">Bhojpuri</option>
+            <option value="Rajasthani">Rajasthani</option>
+            <option value="Kashmiri">Kashmiri</option>
+            <option value="Sindhi">Sindhi</option>
+            <option value="Konkani">Konkani</option>
+            <option value="Nepali">Nepali</option>
+            <option value="Dogri">Dogri</option>
+            <option value="Manipuri">Manipuri</option>
+            <option value="Santali">Santali</option>
+            <option value="Bodo">Bodo</option>
+          </select>
+        </div>
+        <div class="swap-wrap">
+          <button class="swap-btn" onclick="swapLangs()" title="Swap languages">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          </button>
+        </div>
+        <div class="lang-group">
+          <span class="lang-label">Translate To</span>
+          <select class="lang-select" id="toLang">
+            <option value="Hindi">Hindi</option>
+            <option value="Bengali">Bengali</option>
+            <option value="Tamil">Tamil</option>
+            <option value="Telugu">Telugu</option>
+            <option value="Marathi">Marathi</option>
+            <option value="Gujarati">Gujarati</option>
+            <option value="Kannada">Kannada</option>
+            <option value="Malayalam">Malayalam</option>
+            <option value="Punjabi">Punjabi</option>
+            <option value="Urdu">Urdu</option>
+            <option value="Odia">Odia</option>
+            <option value="Assamese">Assamese</option>
+            <option value="Maithili">Maithili</option>
+            <option value="Sanskrit">Sanskrit</option>
+            <option value="Bhojpuri">Bhojpuri</option>
+            <option value="Rajasthani">Rajasthani</option>
+            <option value="Kashmiri">Kashmiri</option>
+            <option value="Sindhi">Sindhi</option>
+            <option value="Konkani">Konkani</option>
+            <option value="Nepali">Nepali</option>
+            <option value="Dogri">Dogri</option>
+            <option value="Manipuri">Manipuri</option>
+            <option value="Santali">Santali</option>
+            <option value="Bodo">Bodo</option>
+            <option value="English">English</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="panels">
+        <div class="panel">
+          <div class="panel-header">Input</div>
+          <textarea id="inputText" placeholder="Type your text here... (Ctrl+Enter to translate)" maxlength="1000" oninput="onInput()"></textarea>
+        </div>
+        <div class="panel-divider"></div>
+        <div class="panel" style="position:relative">
+          <div class="panel-header">Translation</div>
+          <div class="output-area" id="outputArea">
+            <span class="output-placeholder">Your translation will appear here...</span>
+          </div>
+          <div class="transliteration" id="translit"></div>
+          <div class="out-actions" id="outActions">
+            <button class="icon-btn" onclick="speak()" title="Listen">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+            </button>
+            <button class="icon-btn" onclick="copyText()" title="Copy">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-bar">
+        <div class="left-info">
+          <span class="char-count" id="charCount">0 / 1000</span>
+          <div class="wave" id="wave">
+            <div class="wb" style="height:6px"></div>
+            <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+            <div class="wb" style="height:6px"></div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="clearAll()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.93"/></svg>
+            Clear
+          </button>
+          <button class="btn btn-teal" onclick="doTranslate(true)" id="cultBtn">
+            <span id="cultBtnTxt">🪔 Cultural</span>
+          </button>
+          <button class="btn btn-primary" onclick="doTranslate(false)" id="transBtn">
+            <span id="btnTxt">Translate</span>
+            <div class="spin" id="spin"></div>
+            <svg id="btnArrow" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="cultural-card" id="cultCard">
+        <div class="cultural-top">
+          <span style="font-size:1.1rem">🪔</span>
+          <h3>Cultural & Linguistic Context</h3>
+        </div>
+        <div class="cultural-body">
+          <p id="cultText"></p>
+          <div class="tag-row" id="cultTags"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+    <!-- History Section -->
+    <div class="history-section" id="historySection">
+      <div class="history-header">
+        <div class="history-title">Translation History</div>
+        <button class="history-clear" onclick="clearHistory()">Clear All</button>
+      </div>
+      <div id="historyList"></div>
+    </div>
+
+  <footer>Built with ❤️ by <b>Aman Verma</b> &nbsp;·&nbsp; BhāṣāSetu — Connecting India through Language</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CANVAS BACKGROUND ──
+const canvas=document.getElementById('bg-canvas');
+const ctx=canvas.getContext('2d');
+let W,H,particles=[];
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight}
+resize();window.addEventListener('resize',resize);
+function mkP(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.18,vy:(Math.random()-.5)*.18,alpha:Math.random()*.5+.1,color:Math.random()<.5?'249,115,22':'245,158,11'}}
+for(let i=0;i<90;i++)particles.push(mkP());
+const rings=[{r:180,speed:.0004,alpha:.04,dash:[18,14],color:'249,115,22'},{r:280,speed:-.0003,alpha:.03,dash:[8,20],color:'245,158,11'},{r:380,speed:.0002,alpha:.025,dash:[25,10],color:'20,184,166'}];
+let ang=0;
+function draw(){
+  ctx.clearRect(0,0,W,H);ang+=.0005;
+  [[W*.85,H*.15,1],[W*.12,H*.8,.65]].forEach(([cx,cy,scale])=>{
+    rings.forEach((ring,i)=>{
+      ctx.save();ctx.translate(cx,cy);ctx.rotate(ang*(i%2===0?1:-1)*2);
+      ctx.beginPath();ctx.arc(0,0,ring.r*scale,0,Math.PI*2);
+      ctx.setLineDash(ring.dash);ctx.strokeStyle=`rgba(${ring.color},${ring.alpha})`;ctx.lineWidth=1;ctx.stroke();ctx.restore();
+    });
+  });
+  particles.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(${p.color},${p.alpha})`;ctx.fill();
+  });
+  requestAnimationFrame(draw);
+}
+draw();
+
+// ── APP ──
+let translation='',currentLang='';
+function onInput(){
+  document.getElementById('charCount').textContent=document.getElementById('inputText').value.length+' / 1000';
+}
+function quickLang(lang,e){
+  document.getElementById('toLang').value=lang;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  e.target.classList.add('active');
+}
+function swapLangs(){
+  const f=document.getElementById('fromLang'),t=document.getElementById('toLang');
+  [f.value,t.value]=[t.value,f.value];
+  if(translation){document.getElementById('inputText').value=translation;resetOutput();onInput();}
+}
+function resetOutput(){
+  document.getElementById('outputArea').innerHTML='<span class="output-placeholder">Your translation will appear here...</span>';
+  document.getElementById('outActions').classList.remove('show');
+  document.getElementById('cultCard').classList.remove('show');
+  document.getElementById('translit').style.display='none';
+  translation='';
+}
+function clearAll(){
+  document.getElementById('inputText').value='';
+  document.getElementById('charCount').textContent='0 / 1000';
+  resetOutput();
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+}
+async function doTranslate(withCult=false){
+  const input=document.getElementById('inputText').value.trim();
+  if(!input){toast('Please enter some text first 🙏');return}
+  const from=document.getElementById('fromLang').value,to=document.getElementById('toLang').value;
+  if(from===to){toast('Please choose different languages!');return}
+  setLoading(true,withCult);
+  const cultPrompt=withCult?`Also return "cultural_context": a rich paragraph about cultural nuances, idioms, regional use, traditions in the ${to}-speaking community. And "tags": array of 3-5 short cultural keywords.`:'';
+  const prompt=`You are an expert Indian language translator. Translate from ${from} to ${to}: "${input}"\n${cultPrompt}\nReply ONLY with valid JSON (no markdown):\n{"translation":"...","transliteration":"romanized if helpful else empty","cultural_context":"","tags":[]}`;
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
+    const data=await res.json();
+    const raw=data.content.map(i=>i.text||'').join('');
+    const p=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    translation=p.translation;currentLang=to;
+    document.getElementById('outputArea').innerHTML=`<span>${p.translation}</span>`;
+    document.getElementById('outActions').classList.add('show');
+    const tlit=document.getElementById('translit');
+    if(p.transliteration&&p.transliteration.trim()&&p.transliteration!==p.translation){tlit.textContent='🔤 '+p.transliteration;tlit.style.display='block';}else{tlit.style.display='none';}
+    if(withCult&&p.cultural_context){
+      document.getElementById('cultText').textContent=p.cultural_context;
+      const tr=document.getElementById('cultTags');tr.innerHTML='';
+      (p.tags||[]).forEach(t=>{const s=document.createElement('span');s.className='tag';s.textContent=t;tr.appendChild(s);});
+      document.getElementById('cultCard').classList.add('show');
+    }else if(!withCult){document.getElementById('cultCard').classList.remove('show');}
+    saveToHistory(from,to,input,p.translation);
+    toast('✓ Translation complete!');
+  }catch(e){toast('Something went wrong. Please try again.');console.error(e);}
+  setLoading(false,withCult);
+}
+function setLoading(on,isCult){
+  const tb=document.getElementById('transBtn'),cb=document.getElementById('cultBtn');
+  const sp=document.getElementById('spin'),ar=document.getElementById('btnArrow'),tx=document.getElementById('btnTxt'),ct=document.getElementById('cultBtnTxt');
+  tb.disabled=on;cb.disabled=on;
+  if(!isCult){sp.style.display=on?'block':'none';ar.style.display=on?'none':'block';tx.textContent=on?'Translating...':'Translate';}
+  else{ct.textContent=on?'⏳ Analyzing...':'🪔 Cultural';}
+}
+function speak(){
+  if(!translation)return;
+  if(!('speechSynthesis' in window)){toast('Voice not supported');return}
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(translation);
+  const map={'Hindi':'hi-IN','Bengali':'bn-IN','Tamil':'ta-IN','Telugu':'te-IN','Marathi':'mr-IN','Gujarati':'gu-IN','Kannada':'kn-IN','Malayalam':'ml-IN','Punjabi':'pa-IN','Urdu':'ur-PK','Nepali':'ne-NP','Sanskrit':'sa-IN','English':'en-IN'};
+  u.lang=map[currentLang]||'hi-IN';u.rate=0.85;
+  const w=document.getElementById('wave');w.classList.add('on');
+  u.onend=()=>w.classList.remove('on');u.onerror=()=>w.classList.remove('on');
+  speechSynthesis.speak(u);
+}
+function copyText(){
+  if(!translation)return;
+  navigator.clipboard.writeText(translation).then(()=>toast('✓ Copied!')).catch(()=>toast('Could not copy'));
+}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+// ── HISTORY ──
+const HISTORY_KEY='bhashasetu_history';
+function getHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]')}catch{return[]}}
+function saveToHistory(from,to,input,output){
+  const h=getHistory();
+  h.unshift({id:Date.now(),from,to,input,output,time:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})});
+  if(h.length>30)h.pop();
+  localStorage.setItem(HISTORY_KEY,JSON.stringify(h));
+  renderHistory();
+}
+function renderHistory(){
+  const h=getHistory();
+  const el=document.getElementById('historyList');
+  if(!h.length){el.innerHTML='<div class="history-empty">🕊️ No translations yet — your history will appear here</div>';return;}
+  el.innerHTML='<div class="history-list">'+h.map(item=>`
+    <div class="history-item" onclick="loadHistory(${item.id})">
+      <button class="history-del" onclick="event.stopPropagation();deleteHistory(${item.id})" title="Delete">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="history-meta">
+        <span class="history-langs">${item.from}</span>
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        <span class="history-langs">${item.to}</span>
+        <span class="history-time">${item.time}</span>
+      </div>
+      <div class="history-texts">
+        <div class="history-input-text">${escHtml(item.input)}</div>
+        <div class="history-output-text">${escHtml(item.output)}</div>
+      </div>
+    </div>`).join('')+'</div>';
+}
+function loadHistory(id){
+  const item=getHistory().find(h=>h.id===id);
+  if(!item)return;
+  document.getElementById('fromLang').value=item.from;
+  document.getElementById('toLang').value=item.to;
+  document.getElementById('inputText').value=item.input;
+  onInput();
+  translation=item.output;currentLang=item.to;
+  document.getElementById('outputArea').innerHTML=`<span>${item.output}</span>`;
+  document.getElementById('outActions').classList.add('show');
+  document.getElementById('translit').style.display='none';
+  document.getElementById('cultCard').classList.remove('show');
+  toast('✓ Loaded from history!');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function deleteHistory(id){
+  const h=getHistory().filter(item=>item.id!==id);
+  localStorage.setItem(HISTORY_KEY,JSON.stringify(h));
+  renderHistory();
+}
+function clearHistory(){
+  if(!getHistory().length)return;
+  localStorage.removeItem(HISTORY_KEY);
+  renderHistory();
+  toast('History cleared!');
+}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+renderHistory();
+
+document.getElementById('inputText').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter')doTranslate(false);});
+</script>
+</body>
+</html>
